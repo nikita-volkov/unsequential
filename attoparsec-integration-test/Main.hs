@@ -2,7 +2,7 @@ module Main where
 
 import Rebase.Prelude hiding (takeWhile)
 import Data.Attoparsec.ByteString.Char8
-import Disorderly
+import Unsequential
 import Test.Tasty
 import Test.Tasty.Runners
 import Test.Tasty.HUnit
@@ -54,13 +54,13 @@ dateOutOfAnyObject =
   object rows
   where
     rows =
-      runDisorderly disorderlyRows skip sep <* skipRemainders
+      runUnsequential unsequentialRows skip sep <* skipRemainders
       where
-        disorderlyRows =
+        unsequentialRows =
           (,,) <$>
-          disorderly (objectRow (== "year") stringLit) <*>
-          disorderly (objectRow (== "month") stringLit) <*>
-          disorderly (objectRow (== "day") stringLit)
+          unsequential (objectRow (== "year") stringLit) <*>
+          unsequential (objectRow (== "month") stringLit) <*>
+          unsequential (objectRow (== "day") stringLit)
         skip =
           objectRow (const True) stringLit $> ()
         sep =

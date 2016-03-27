@@ -1,7 +1,7 @@
-module Disorderly.Execution
+module Unsequential.Execution
 where
 
-import Disorderly.Prelude
+import Unsequential.Prelude
 
 
 type Execution b m a =
