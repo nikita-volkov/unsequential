@@ -57,7 +57,7 @@ instance MonadTrans Disorderly where
 -- |
 -- Runs 'Disorderly' given an implementation of the \"skip\" action,
 -- which might as well be just @return ()@ in case you don't want
--- skipping.
+-- skipping or @mzero@ if you want to fail on the attempt to skip.
 runDisorderly :: MonadPlus m => Disorderly m a -> m () -> m a
 runDisorderly (Disorderly alternatives extractor) skip =
   do
