@@ -11,14 +11,14 @@ run :: Monad m => Execution b m () -> [m b] -> m ([m b], [b])
 run execution alternatives =
   execStateT execution (alternatives, [])
 
-tryAlternatives :: MonadPlus m => Execution b m ()
-tryAlternatives =
+tryAlternatives :: MonadPlus m => m () -> Execution b m ()
+tryAlternatives skip =
   modifyM loop
   where
     loop (alternatives, results) =
       case alternatives of
         alternativesHead : alternativesTail ->
-          tryHead <|> tryTail
+          mplus tryHead tryTail
           where
             tryHead =
               fmap (\result -> (alternativesTail, result : results)) $
@@ -27,14 +27,20 @@ tryAlternatives =
               fmap (\(alternatives, results) -> (alternativesHead : alternatives, results)) $
               loop (alternativesTail, results)
         _ ->
-          pure (alternatives, results)
+          skip $> (alternatives, results)
 
-untilNoAlternativesIsLeft :: Monad m => Execution b m () -> Execution b m ()
-untilNoAlternativesIsLeft action =
+untilNoAlternativesLeft :: Monad m => Execution b m () -> Execution b m ()
+untilNoAlternativesLeft action =
   loop
   where
     loop =
-      anyAlternativesLeft >>= bool (return ()) (action >> loop)
+      anyAlternativesLeft >>=
+      bool (return ()) (action >> loop)
+
+ifAnyAlternativesLeft :: MonadPlus m => Execution b m a -> Execution b m a
+ifAnyAlternativesLeft action =
+  anyAlternativesLeft >>=
+  bool (mzero) action
 
 anyAlternativesLeft :: Monad m => Execution b m Bool
 anyAlternativesLeft =
@@ -46,6 +52,6 @@ getResults =
   gets $
   \(_, results) -> results
 
-process :: MonadPlus m => m () -> Execution b m ()
-process skip =
-  untilNoAlternativesIsLeft (tryAlternatives <|> lift skip)
+process :: MonadPlus m => m () -> m () -> Execution b m ()
+process skip sep =
+  skipSepBy (ifAnyAlternativesLeft (tryAlternatives skip)) (lift sep)

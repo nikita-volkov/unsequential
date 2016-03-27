@@ -41,13 +41,16 @@ instance MonadTrans Disorderly where
     disorderly
 
 -- |
--- Runs 'Disorderly' given an implementation of the \"skip\" action,
--- which might as well be just @return ()@ in case you don't want
+-- Runs 'Disorderly' given an implementation of the \"skip\" and \"separator\" actions.
+-- 
+-- The \"skip\" action can be just @return ()@ in case you don't want
 -- skipping or @mzero@ if you want to fail on the attempt to skip.
-runDisorderly :: MonadPlus m => Disorderly m a -> m () -> m a
-runDisorderly (Disorderly alternatives extractor) skip =
+-- 
+-- The \"separator\" action can be @return ()@ in case you want none.
+runDisorderly :: MonadPlus m => Disorderly m a -> m () -> m () -> m a
+runDisorderly (Disorderly alternatives extractor) skip sep =
   do
-    (remainingAlternatives, results) <- Execution.run (Execution.process skip) (toList alternatives)
+    (remainingAlternatives, results) <- Execution.run (Execution.process skip sep) (toList alternatives)
     guard (null remainingAlternatives)
     maybe mzero return (extractor results)
 
