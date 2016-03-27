@@ -35,20 +35,6 @@ instance Applicative m => Applicative (Disorderly m) where
           (intermediates1, intermediates2) ->
             ($) <$> extractor1 intermediates1 <*> extractor2 intermediates2
 
-instance Alternative m => Alternative (Disorderly m) where
-  empty =
-    Disorderly empty (const empty)
-  (<|>) (Disorderly alternatives1 extractor1) (Disorderly alternatives2 extractor2) =
-    Disorderly alternatives3 extractor3
-    where
-      alternatives3 =
-        (fmap . fmap) Left alternatives1 <>
-        (fmap . fmap) Right alternatives2
-      extractor3 intermediates =
-        case partitionEithers intermediates of
-          (intermediates1, intermediates2) ->
-            extractor1 intermediates1 <|> extractor2 intermediates2
-
 instance MonadTrans Disorderly where
   {-# INLINE lift #-}
   lift =
