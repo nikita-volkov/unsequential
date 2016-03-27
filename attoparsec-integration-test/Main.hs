@@ -51,16 +51,19 @@ main =
 
 dateOutOfAnyObject :: Parser (ByteString, ByteString, ByteString)
 dateOutOfAnyObject =
+  objectWithUnsequentialRows $
+  (,,) <$>
+  unsequential (objectRow (== "year") stringLit) <*>
+  unsequential (objectRow (== "month") stringLit) <*>
+  unsequential (objectRow (== "day") stringLit)
+
+objectWithUnsequentialRows :: Unsequential Parser a -> Parser a
+objectWithUnsequentialRows unsequentialRows =
   object rows
   where
     rows =
       runUnsequential unsequentialRows skip sep <* skipRemainders
       where
-        unsequentialRows =
-          (,,) <$>
-          unsequential (objectRow (== "year") stringLit) <*>
-          unsequential (objectRow (== "month") stringLit) <*>
-          unsequential (objectRow (== "day") stringLit)
         skip =
           objectRow (const True) stringLit $> ()
         sep =
