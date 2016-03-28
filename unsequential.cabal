@@ -1,7 +1,7 @@
 name:
   unsequential
 version:
-  0.4
+  0.5
 synopsis:
 description:
 category:
@@ -67,6 +67,7 @@ test-suite attoparsec-integration-test
   build-depends:
     -- 
     unsequential,
+    interspersed >= 0.1 && < 0.2,
     -- 
     attoparsec >= 0.13 && < 0.14,
     -- testing:

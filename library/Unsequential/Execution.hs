@@ -52,6 +52,6 @@ getResults =
   gets $
   \(_, results) -> results
 
-process :: MonadPlus m => m () -> m () -> Execution b m ()
-process skip sep =
-  skipSepBy (ifAnyAlternativesLeft (tryAlternatives skip)) (lift sep)
+process :: MonadPlus m => m () -> Execution b m ()
+process skip =
+  skipMany (ifAnyAlternativesLeft (tryAlternatives skip))

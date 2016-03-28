@@ -3,6 +3,7 @@ module Main where
 import Rebase.Prelude hiding (takeWhile)
 import Data.Attoparsec.ByteString.Char8
 import Unsequential
+import Interspersed
 import Test.Tasty
 import Test.Tasty.Runners
 import Test.Tasty.HUnit
@@ -53,23 +54,20 @@ dateOutOfAnyObject :: Parser (ByteString, ByteString, ByteString)
 dateOutOfAnyObject =
   objectWithUnsequentialRows $
   (,,) <$>
-  unsequential (objectRow (== "year") stringLit) <*>
-  unsequential (objectRow (== "month") stringLit) <*>
-  unsequential (objectRow (== "day") stringLit)
+  unsequential (interspersed (objectRow (== "year") stringLit)) <*>
+  unsequential (interspersed (objectRow (== "month") stringLit)) <*>
+  unsequential (interspersed (objectRow (== "day") stringLit))
 
-objectWithUnsequentialRows :: Unsequential Parser a -> Parser a
+objectWithUnsequentialRows :: Unsequential (Interspersed Parser) a -> Parser a
 objectWithUnsequentialRows unsequentialRows =
   object rows
   where
     rows =
-      runUnsequential unsequentialRows skip sep <* skipRemainders
+      runInterspersed (runUnsequential unsequentialRows skip <* skipMany skip) comma
       where
         skip =
+          interspersed $
           objectRow (const True) stringLit $> ()
-        sep =
-          skipSpace *> char ',' *> skipSpace
-        skipRemainders =
-          many (sep *> skip)
 
 -- |
 -- Given a rows parser produces a parser of the object.
@@ -95,3 +93,7 @@ objectRow keyPredicate valueParser =
 stringLit :: Parser ByteString
 stringLit =
   char '"' *> takeWhile (/= '"') <* char '"'
+
+comma :: Parser ()
+comma =
+  skipSpace *> char ',' *> skipSpace

@@ -4,6 +4,8 @@ module Unsequential.Prelude
   modifyM,
   skipSepBy,
   skipSepBy1,
+  skipMany,
+  skipMany1,
 )
 where
 
@@ -45,3 +47,16 @@ skipSepBy1 one sep =
   where
     remainders =
       (sep *> one *> remainders) <|> pure ()
+
+{-# INLINABLE skipMany #-}
+skipMany :: Alternative f => f a -> f ()
+skipMany fx =
+  loop
+  where
+    loop =
+      (fx *> loop) <|> pure ()
+
+{-# INLINE skipMany1 #-}
+skipMany1 :: Alternative f => f a -> f ()
+skipMany1 fx =
+  fx *> skipMany fx
