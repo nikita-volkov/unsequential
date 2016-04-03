@@ -18,12 +18,15 @@ data Unsequential m a =
   forall b. Unsequential !(DList (m b)) !([b] -> Maybe a)
 
 instance Functor m => Functor (Unsequential m) where
+  {-# INLINE fmap #-}
   fmap f (Unsequential alternatives extractor) =
     Unsequential alternatives (fmap (fmap f) extractor)
 
 instance Applicative m => Applicative (Unsequential m) where
+  {-# INLINE pure #-}
   pure a =
     Unsequential empty (const (pure a))
+  {-# INLINABLE (<*>) #-}
   (<*>) (Unsequential alternatives1 extractor1) (Unsequential alternatives2 extractor2) =
     Unsequential alternatives3 extractor3
     where
@@ -45,8 +48,10 @@ instance MonadTrans Unsequential where
 -- 
 -- The \"skip\" effect can be just @return ()@ in case you don't want
 -- skipping or @mzero@ if you want to fail on the attempt to skip.
+{-# INLINABLE runUnsequential #-}
 runUnsequential :: MonadPlus m => Unsequential m a -> m () -> m a
 runUnsequential (Unsequential alternatives extractor) skip =
+  {-# SCC "runUnsequential" #-} 
   do
     (remainingAlternatives, results) <- Execution.run (Execution.process skip) (toList alternatives)
     guard (null remainingAlternatives)
@@ -56,15 +61,17 @@ runUnsequential (Unsequential alternatives extractor) skip =
 -- Lift a computation in the base monad.
 -- 
 -- Same as 'lift'.
+{-# INLINABLE unsequential #-}
 unsequential :: Monad m => m a -> Unsequential m a
 unsequential alternative =
-    Unsequential alternatives extractor
-    where
-      alternatives =
-        pure alternative
-      extractor =
-        \case
-          head : _ ->
-            return head
-          _ ->
-            mzero
+  {-# SCC "unsequential" #-} 
+  Unsequential alternatives extractor
+  where
+    alternatives =
+      pure alternative
+    extractor =
+      \case
+        head : _ ->
+          return head
+        _ ->
+          mzero

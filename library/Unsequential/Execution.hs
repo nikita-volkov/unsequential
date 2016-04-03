@@ -7,12 +7,16 @@ import Unsequential.Prelude
 type Execution b m a =
   StateT ([m b], [b]) m a
 
+{-# INLINE run #-}
 run :: Monad m => Execution b m () -> [m b] -> m ([m b], [b])
 run execution alternatives =
+  {-# SCC "run" #-} 
   execStateT execution (alternatives, [])
 
+{-# INLINABLE tryAlternatives #-}
 tryAlternatives :: MonadPlus m => m () -> Execution b m ()
 tryAlternatives skip =
+  {-# SCC "tryAlternatives" #-} 
   modifyM loop
   where
     loop (alternatives, results) =
@@ -37,6 +41,7 @@ untilNoAlternativesLeft action =
       anyAlternativesLeft >>=
       bool (return ()) (action >> loop)
 
+{-# INLINE ifAnyAlternativesLeft #-}
 ifAnyAlternativesLeft :: MonadPlus m => Execution b m a -> Execution b m a
 ifAnyAlternativesLeft action =
   anyAlternativesLeft >>=
@@ -52,6 +57,7 @@ getResults =
   gets $
   \(_, results) -> results
 
+{-# INLINE process #-}
 process :: MonadPlus m => m () -> Execution b m ()
 process skip =
-  skipMany (ifAnyAlternativesLeft (tryAlternatives skip))
+  inline skipMany (ifAnyAlternativesLeft (inline tryAlternatives skip))
