@@ -1,8 +1,9 @@
 name:
   unsequential
 version:
-  0.5.0.1
+  0.5.0.2
 synopsis:
+  An extension removing the sequentiality from monads
 description:
 category:
   Control
