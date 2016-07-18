@@ -47,7 +47,7 @@ library
   exposed-modules:
     Unsequential
   build-depends:
-    dlist >= 0.7 && < 0.8,
+    dlist >= 0.7 && < 0.9,
     -- 
     transformers >= 0.4 && < 0.6,
     base-prelude < 2,
