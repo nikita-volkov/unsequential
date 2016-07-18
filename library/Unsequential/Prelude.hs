@@ -31,7 +31,7 @@ import Data.DList as Exports (DList)
 -------------------------
 
 {-# INLINE modifyM #-}
-modifyM :: Monad m => (a -> m a) -> StateT a m ()
+modifyM :: Functor m => (a -> m a) -> StateT a m ()
 modifyM f =
   StateT (fmap (\s -> ((), s)) . f)
 
