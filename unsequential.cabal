@@ -1,7 +1,7 @@
 name:
   unsequential
 version:
-  0.5.1
+  0.5.2
 synopsis:
   An extension removing the sequentiality from monads
 description:
