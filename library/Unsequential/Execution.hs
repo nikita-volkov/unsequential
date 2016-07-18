@@ -25,10 +25,10 @@ tryAlternatives skip =
           mplus tryHead tryTail
           where
             tryHead =
-              fmap (\result -> (alternativesTail, result : results)) $
+              liftM (\result -> (alternativesTail, result : results)) $
               alternativesHead
             tryTail =
-              fmap (\(alternatives, results) -> (alternativesHead : alternatives, results)) $
+              liftM (\(alternatives, results) -> (alternativesHead : alternatives, results)) $
               loop (alternativesTail, results)
         _ ->
           skip $> (alternatives, results)
